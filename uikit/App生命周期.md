@@ -99,3 +99,64 @@ For a foreground app that is moving to the background, UIKit follows deactivatio
 * [延长后台运行时间](https://developer.apple.com/documentation/uikit/core_app/managing_your_app_s_life_cycle/preparing_your_app_to_run_in_the_background/extending_your_app_s_background_execution_time)
 
 * [About the Background Execution Sequence](https://developer.apple.com/documentation/uikit/core_app/managing_your_app_s_life_cycle/preparing_your_app_to_run_in_the_background/about_the_background_execution_sequence)
+
+
+#### Preserving Your App's UI Across Launches 在app被杀掉再次打开时候保存之前状态
+
+The preservation and restoration processes are initiated automatically, but you must also do some specific work to support those processes:
+
+* Enable support for state preservation and restoration.
+
+* Assign restoration identifiers to the view controllers that you want to preserve.
+
+* Recreate view controllers, as needed, at restoration time.
+
+* Encode and decode the custom data that you need to restore your view controller to its previous state.
+
+##### APP级别的保存恢复数据
+```(swift)
+func application(_ application: UIApplication, 
+            shouldSaveApplicationState coder: NSCoder) -> Bool {
+   // Save the current app version to the archive.
+   coder.encode(11.0, forKey: "MyAppVersion")
+        
+   // Always save state information.
+   return true
+}
+    
+func application(_ application: UIApplication, 
+            shouldRestoreApplicationState coder: NSCoder) -> Bool {
+   // Restore the state only if the app version matches.
+   let version = coder.decodeFloat(forKey: "MyAppVersion")
+   if version == 11.0 {
+      return true
+   }
+    
+   // Do not restore from old data.    
+   return false
+}
+```
+
+
+##### Controller中保存恢复数据
+
+```
+override func encodeRestorableState(with coder: NSCoder) {
+   super.encodeRestorableState(with: coder)
+        
+   // Save the user ID so that we can load that user later.
+   coder.encode(userID, forKey: "UserID")
+}
+
+override func decodeRestorableState(with coder: NSCoder) {
+   super.decodeRestorableState(with: coder)
+   
+   // Restore the first name and last name from the user ID
+   let identifier = coder.decodeObject(forKey: "UserID") as! String
+}
+```
+
+阅读：
+* [About the UI Preservation Process UI保存数据过程](https://developer.apple.com/documentation/uikit/view_controllers/preserving_your_app_s_ui_across_launches/about_the_ui_preservation_process)
+
+* [About the UI Restoration Process UI 恢复数据过程](https://developer.apple.com/documentation/uikit/view_controllers/preserving_your_app_s_ui_across_launches/about_the_ui_restoration_process)
